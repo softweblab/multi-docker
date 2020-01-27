@@ -1,0 +1,20 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t bluenote1973/react-test -f ./client/Dockerfile.dev ./client
+    
+script:
+    - docker run bluenote1973/react-test npm test -- --coverage
+
+after_success:
+    - docker build -t bluenote1973/multi-client ./client
+    - docker build -t bluenote1973/multi-nginx ./nginx
+    - docker build -t bluenote1973/multi-server ./server
+    - docker build -t bluenote1973/multi-worker ./worker
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push bluenote1973/multi-client
+    - docker push bluenote1973/multi-nginx
+    - docker push bluenote1973/multi-server
+    - docker push bluenote1973/multi-worker
